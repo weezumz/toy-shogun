@@ -41,6 +41,10 @@ app.post('/create-payment', async (req, res) => {
             amount: Math.round(amount * 100), // Convert to centavos
             description: `Toy Shogun Wholesale Order #${orderId.slice(0, 8).toUpperCase()}`,
             remarks: `Order by ${customerName}`,
+             redirect: {
+    success: 'http://localhost:3001/',
+    failed: 'http://localhost:3001/checkout',
+  }
           }
         }
       },
