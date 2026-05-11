@@ -6,13 +6,15 @@ import { supabase } from '../supabaseClient';
 
 const STATUS_COLOR = {
   pending: '#f59e0b', confirmed: '#3b82f6',
-  ready: '#06b6d4', completed: '#22c55e', cancelled: '#ef4444',
+  ready: '#06b6d4', handed_off: '#8b5cf6',
+  completed: '#22c55e', cancelled: '#ef4444',
 };
 
 const STATUS_LABEL = {
   pending: 'Pending',
   confirmed: 'Confirmed',
   ready: 'Ready for Pickup',
+  handed_off: 'Shipped via LBC',
   completed: 'Completed',
   cancelled: 'Cancelled',
 };
@@ -131,6 +133,25 @@ export default function AccountOrders() {
                         {order.notes && (
                           <div style={{ marginTop: '12px', color: '#888', fontSize: '0.82rem' }}>
                             Note: {order.notes}
+                          </div>
+                        )}
+                        {order.delivery_method === 'lbc' && (
+                          <div style={{
+                            marginTop: '12px', padding: '10px 14px',
+                            backgroundColor: '#f5f3ff', borderRadius: '8px',
+                            fontSize: '0.82rem',
+                          }}>
+                            <div style={{ color: '#6d28d9', fontWeight: 600, marginBottom: '4px' }}>LBC Delivery</div>
+                            {order.delivery_address && (
+                              <div style={{ color: '#666' }}>📍 {order.delivery_address}</div>
+                            )}
+                            {order.tracking_number ? (
+                              <div style={{ color: '#6d28d9', marginTop: '4px', fontWeight: 600 }}>
+                                Tracking #: {order.tracking_number}
+                              </div>
+                            ) : (
+                              <div style={{ color: '#999', marginTop: '4px' }}>Tracking number will appear here once shipped.</div>
+                            )}
                           </div>
                         )}
                       </>

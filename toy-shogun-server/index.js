@@ -2,6 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const { createClient } = require('@supabase/supabase-js');
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -67,11 +73,62 @@ app.post('/create-payment', async (req, res) => {
 
 app.post('/webhook/paymongo', async (req, res) => {
   const event = req.body;
-  console.log('PayMongo webhook received:', event.data?.attributes?.type);
-  if (event.data?.attributes?.type === 'link.payment.paid') {
-    const linkId = event.data?.attributes?.data?.attributes?.link_id;
+  const type = event.data?.attributes?.type;
+  console.log('PayMongo webhook received:', type);
+
+  if (type === 'link.payment.paid') {
+    const linkId = event.data?.attributes?.data?.id;
     console.log('Payment confirmed for link:', linkId);
+
+    try {
+      const { data: order, error: findError } = await supabase
+        .from('online_orders')
+        .select('id, status')
+        .eq('paymongo_link_id', linkId)
+        .single();
+
+      if (findError || !order) {
+        console.error('Order not found for link:', linkId);
+        return res.sendStatus(200);
+      }
+
+      if (order.status !== 'pending') {
+        return res.sendStatus(200);
+      }
+
+      await supabase
+        .from('online_orders')
+        .update({ payment_status: 'paid', status: 'confirmed' })
+        .eq('id', order.id);
+
+      const { data: items } = await supabase
+        .from('online_order_items')
+        .select('product_id, quantity')
+        .eq('order_id', order.id);
+
+      if (items?.length) {
+        await Promise.all(items.map(item =>
+          supabase.rpc('decrement_stock', {
+            p_product_id: item.product_id,
+            p_quantity: item.quantity,
+          })
+        ));
+      }
+
+      await supabase
+        .from('notifications')
+        .insert([{
+          type: 'payment',
+          title: `Payment received — Order #${order.id.slice(0, 8).toUpperCase()}`,
+          body: 'Payment confirmed via PayMongo.',
+        }]);
+
+      console.log('Order updated and stock decremented for order:', order.id);
+    } catch (err) {
+      console.error('Webhook processing error:', err.message);
+    }
   }
+
   res.sendStatus(200);
 });
 
