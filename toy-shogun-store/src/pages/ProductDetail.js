@@ -30,10 +30,7 @@ export default function ProductDetail() {
       .eq('id', id)
       .eq('is_published', true)
       .single();
-    if (data) {
-      setProduct(data);
-      setQuantity(data.min_order_qty || 1);
-    }
+    if (data) setProduct(data);
     setLoading(false);
   };
 
@@ -56,7 +53,6 @@ export default function ProductDetail() {
   );
 
   const outOfStock = product.stock_quantity === 0;
-  const minQty = product.min_order_qty || 1;
 
   return (
     <PublicLayout>
@@ -100,9 +96,6 @@ export default function ProductDetail() {
           </div>
 
           <h2 style={{ fontWeight: 700, color: '#1a1a2e', marginBottom: '8px' }}>{product.name}</h2>
-          <div style={{ color: '#999', fontSize: '0.85rem', marginBottom: '16px' }}>
-            SKU: {product.sku}
-          </div>
 
           <div style={{ fontSize: '2rem', fontWeight: 700, color: '#e94560', marginBottom: '8px' }}>
             ₱{parseFloat(product.price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
@@ -135,7 +128,7 @@ export default function ProductDetail() {
               <label style={{ fontWeight: 600, color: '#1a1a2e' }}>Quantity:</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <button
-                  onClick={() => setQuantity(q => Math.max(minQty, q - 1))}
+                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
                   style={qtyBtnStyle}
                 >−</button>
                 <span style={{ fontWeight: 600, fontSize: '1.1rem', minWidth: '32px', textAlign: 'center' }}>

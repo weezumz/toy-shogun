@@ -2,12 +2,24 @@
 // Global cart state for the public e-commerce site.
 // Wraps the public-facing pages so any component can access or modify the cart.
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const CartContext = createContext();
+const CART_KEY = 'toy_shogun_cart';
 
 export function CartProvider({ children }) {
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CART_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(CART_KEY, JSON.stringify(cartItems));
+  }, [cartItems]);
 
   // addToCart: adds a product or increases quantity if already in cart
   const addToCart = (product, quantity = 1) => {

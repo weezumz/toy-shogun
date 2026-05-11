@@ -5,11 +5,18 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import logo from '../assets/shogunlogo.png';
 
 export default function PublicLayout({ children, noPadding = false }) {
   const { cartCount } = useCart();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#e6e3e3', display: 'flex', flexDirection: 'column' }}>
@@ -45,6 +52,20 @@ export default function PublicLayout({ children, noPadding = false }) {
           <NavLink to="/shop">Shop</NavLink>
           <NavLink to="/preorders">Pre-Order</NavLink>
           <NavLink to="/events">Events</NavLink>
+
+          {/* Auth */}
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <NavLink to="/account">My Account</NavLink>
+              <button onClick={handleSignOut} style={{
+                background: 'none', border: '1px solid #555',
+                color: '#aaa', padding: '6px 14px', borderRadius: '6px',
+                cursor: 'pointer', fontSize: '0.85rem',
+              }}>Sign Out</button>
+            </div>
+          ) : (
+            <NavLink to="/login">Sign In</NavLink>
+          )}
 
           {/* Cart */}
           <button onClick={() => navigate('/cart')} style={{
@@ -119,6 +140,7 @@ export default function PublicLayout({ children, noPadding = false }) {
               <FooterLink to="/preorders">Pre-Orders</FooterLink>
               <FooterLink to="/events">Events</FooterLink>
               <FooterLink to="/cart">Cart</FooterLink>
+              <FooterLink to="/account">My Account</FooterLink>
             </div>
           </div>
 

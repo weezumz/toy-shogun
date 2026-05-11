@@ -6,7 +6,6 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { supabase } from '../supabaseClient';
 import { Table, Button, Modal, Form, Alert, Badge, Spinner, Row, Col, Card } from 'react-bootstrap';
-import { useAuditLog } from '../hooks/useAuditLog';
 import ImageUpload from '../components/ImageUpload';
 
 export default function Events() {
@@ -26,8 +25,6 @@ export default function Events() {
     image_url: '',
     is_published: false,
   });
-
-  const { logAction } = useAuditLog();
 
   useEffect(() => {
     fetchEvents();
@@ -99,15 +96,11 @@ export default function Events() {
         .update(payload)
         .eq('id', editingEvent.id);
       if (error) { setError(error.message); return; }
-      await logAction('UPDATE', 'events', editingEvent, payload);
     } else {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('events')
-        .insert([payload])
-        .select()
-        .single();
+        .insert([payload]);
       if (error) { setError(error.message); return; }
-      await logAction('INSERT', 'events', null, data);
     }
 
     setShowModal(false);
@@ -119,7 +112,6 @@ export default function Events() {
     const eventToDelete = events.find(e => e.id === id);
     const { error } = await supabase.from('events').delete().eq('id', id);
     if (error) { setError(error.message); return; }
-    await logAction('DELETE', 'events', eventToDelete, null);
     fetchEvents();
   };
 

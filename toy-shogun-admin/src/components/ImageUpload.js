@@ -10,32 +10,42 @@ export default function ImageUpload({ currentUrl, onUpload, folder = 'general' }
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
 
+  const compressImage = (file) => new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1200;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        if (width > height) { height = Math.round((height * MAX) / width); width = MAX; }
+        else { width = Math.round((width * MAX) / height); height = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(resolve, 'image/jpeg', 0.82);
+    };
+    img.src = URL.createObjectURL(file);
+  });
+
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       setError('Please select an image file.');
-      return;
-    }
-
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      setError('Image must be under 2MB.');
       return;
     }
 
     setError('');
     setUploading(true);
 
-    // Generate a unique filename to avoid conflicts
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${folder}/${Date.now()}.${fileExt}`;
+    const compressed = await compressImage(file);
+    const fileName = `${folder}/${Date.now()}.jpg`;
 
     const { error: uploadError } = await supabase.storage
       .from('images')
-      .upload(fileName, file, { upsert: true });
+      .upload(fileName, compressed, { upsert: true, contentType: 'image/jpeg' });
 
     if (uploadError) {
       setError(uploadError.message);
@@ -92,7 +102,7 @@ export default function ImageUpload({ currentUrl, onUpload, folder = 'general' }
             {uploading ? 'Uploading...' : currentUrl ? 'Change Image' : 'Upload Image'}
           </div>
           <div style={{ fontSize: '0.75rem', color: '#999' }}>
-            PNG, JPG, WEBP — max 2MB
+            PNG, JPG, WEBP — auto-compressed on upload
           </div>
         </div>
         <input

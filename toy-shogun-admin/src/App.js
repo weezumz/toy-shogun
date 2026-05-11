@@ -11,10 +11,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
-import POS from './pages/POS';
 import Users from './pages/Users';
-import AuditLog from './pages/AuditLog';
 import Events from './pages/Events';
+import OnlineOrders from './pages/OnlineOrders';
+import Reservations from './pages/Reservations';
 
 // AuthProvider gives the whole app access to login state
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -46,9 +46,9 @@ function App() {
           {/* Protected routes — only accessible when logged in */}
           <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/inventory" element={<PrivateRoute><Inventory /></PrivateRoute>} />
-          <Route path="/pos" element={<PrivateRoute><POS /></PrivateRoute>} />
+          <Route path="/orders" element={<PrivateRoute><OnlineOrders /></PrivateRoute>} />
+          <Route path="/reservations" element={<PrivateRoute><Reservations /></PrivateRoute>} />
           <Route path="/users" element={<AdminRoute><Users /></AdminRoute>} />
-          <Route path="/audit" element={<AdminRoute><AuditLog /></AdminRoute>} />
           <Route path="/events" element={<PrivateRoute><Events /></PrivateRoute>} />
         </Routes>
       </Router>

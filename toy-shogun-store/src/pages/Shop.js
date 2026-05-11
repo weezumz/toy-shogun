@@ -4,7 +4,7 @@
 // Supports filtering by category and searching by name.
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import PublicLayout from '../components/PublicLayout';
 import { supabase } from '../supabaseClient';
 
@@ -12,7 +12,8 @@ export default function Shop() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('q') || '');
   const [selectedCategory, setSelectedCategory] = useState('');
   const navigate = useNavigate();
 
@@ -27,6 +28,7 @@ export default function Shop() {
       .from('products')
       .select('*, categories(name)')
       .eq('is_published', true)
+      .gt('stock_quantity', 0)
       .order('created_at', { ascending: false });
     if (data) setProducts(data);
     setLoading(false);
@@ -50,7 +52,7 @@ export default function Shop() {
       <div style={{ marginBottom: '32px' , marginLeft: '40px'}}>
         <h2 style={{ fontWeight: 700, color: '#1a1a2e' }}>Toy Shogun Shop</h2>
         <p style={{ color: '#666' }}>
-          All products listed are for wholesale orders only. Minimum order quantities apply.
+          Browse our available products and add them to your cart.
         </p>
       </div>
 
@@ -160,9 +162,6 @@ function ProductCard({ product, onClick }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: 700, color: '#e94560', fontSize: '1.1rem' }}>
             ₱{parseFloat(product.price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-          </span>
-          <span style={{ fontSize: '0.75rem', color: '#999' }}>
-            Min: {product.min_order_qty || 1} pcs
           </span>
         </div>
       </div>

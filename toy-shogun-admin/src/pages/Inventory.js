@@ -6,7 +6,6 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { supabase } from '../supabaseClient';
 import { Table, Button, Modal, Form, Alert, Badge, Spinner, Row, Col, Card } from 'react-bootstrap';
-import { useAuditLog } from '../hooks/useAuditLog';
 import ImageUpload from '../components/ImageUpload';
 
 export default function Inventory() {
@@ -27,10 +26,7 @@ export default function Inventory() {
     reorder_level: '5', sku: '', image_url: '',
     is_published: false,
     is_preorder: false, preorder_release_date: '',
-    min_order_qty: '1',
   });
-
-  const { logAction } = useAuditLog();
 
   useEffect(() => {
     fetchProducts();
@@ -60,7 +56,6 @@ export default function Inventory() {
       reorder_level: '5', sku: '', image_url: '',
       is_published: false,
       is_preorder: false, preorder_release_date: '',
-      min_order_qty: '1',
     });
     setShowModal(true);
   };
@@ -78,7 +73,6 @@ export default function Inventory() {
       is_published: product.is_published || false,
       is_preorder: product.is_preorder || false,
       preorder_release_date: product.preorder_release_date || '',
-      min_order_qty: product.min_order_qty || '1',
     });
     setShowModal(true);
   };
@@ -99,19 +93,16 @@ export default function Inventory() {
       is_preorder: form.is_preorder,
       preorder_release_date: form.is_preorder && form.preorder_release_date
         ? form.preorder_release_date : null,
-      min_order_qty: parseInt(form.min_order_qty) || 1,
     };
 
     if (editingProduct) {
       const { error } = await supabase
         .from('products').update(payload).eq('id', editingProduct.id);
       if (error) { setError(error.message); return; }
-      await logAction('UPDATE', 'products', editingProduct, payload);
     } else {
-      const { data, error } = await supabase
-        .from('products').insert([payload]).select().single();
+      const { error } = await supabase
+        .from('products').insert([payload]);
       if (error) { setError(error.message); return; }
-      await logAction('INSERT', 'products', null, data);
     }
 
     setShowModal(false);
@@ -123,7 +114,6 @@ export default function Inventory() {
     const productToDelete = products.find(p => p.id === id);
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) { setError(error.message); return; }
-    await logAction('DELETE', 'products', productToDelete, null);
     fetchProducts();
   };
 
@@ -148,12 +138,10 @@ export default function Inventory() {
       const { error } = await supabase
         .from('categories').update(payload).eq('id', editingCategory.id);
       if (error) { setError(error.message); return; }
-      await logAction('UPDATE', 'categories', editingCategory, payload);
     } else {
-      const { data, error } = await supabase
-        .from('categories').insert([payload]).select().single();
+      const { error } = await supabase
+        .from('categories').insert([payload]);
       if (error) { setError(error.message); return; }
-      await logAction('INSERT', 'categories', null, data);
     }
 
     setShowCategoryModal(false);
@@ -165,7 +153,6 @@ export default function Inventory() {
     const { error } = await supabase
       .from('categories').delete().eq('id', editingCategory.id);
     if (error) { setError(error.message); return; }
-    await logAction('DELETE', 'categories', editingCategory, null);
     setShowCategoryModal(false);
     fetchCategories();
   };
@@ -411,16 +398,6 @@ export default function Inventory() {
                     type="number" min="0"
                     value={form.reorder_level}
                     onChange={e => setForm({ ...form, reorder_level: e.target.value })}
-                  />
-                </Form.Group>
-              </Col>
-              <Col>
-                <Form.Group className="mb-3">
-                  <Form.Label>Min Order Qty</Form.Label>
-                  <Form.Control
-                    type="number" min="1"
-                    value={form.min_order_qty}
-                    onChange={e => setForm({ ...form, min_order_qty: e.target.value })}
                   />
                 </Form.Group>
               </Col>

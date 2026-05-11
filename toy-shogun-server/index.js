@@ -39,7 +39,7 @@ app.post('/create-payment', async (req, res) => {
             description: `Toy Shogun Wholesale Order #${orderId.slice(0, 8).toUpperCase()}`,
             remarks: `Order by ${customerName}`,
             redirect: {
-              success: 'https://toy-shogun-store.vercel.app/', // ← replace with your actual store URL
+              success: 'https://toy-shogun-store.vercel.app/', 
               failed: 'https://toy-shogun-store.vercel.app/checkout',
             }
           }

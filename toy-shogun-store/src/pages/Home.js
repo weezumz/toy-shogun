@@ -18,8 +18,15 @@ export default function Home() {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [fullscreenImage, setFullscreenImage] = useState(null);
+  const [heroSearch, setHeroSearch] = useState('');
   const navigate = useNavigate();
   const { addToCart } = useCart();
+
+  const handleHeroSearch = (e) => {
+    e.preventDefault();
+    if (heroSearch.trim()) navigate(`/shop?q=${encodeURIComponent(heroSearch.trim())}`);
+    else navigate('/shop');
+  };
 
   useEffect(() => {
     fetchEvents();
@@ -76,36 +83,46 @@ export default function Home() {
         <h1 style={{ fontWeight: 900, fontSize: '3rem', marginBottom: '16px', letterSpacing: '1px' }}>
           Toy Shogun Hobby Shop
         </h1>
-        <p style={{ fontSize: '1.15rem', opacity: 0.9, marginBottom: '32px', maxWidth: '520px', margin: '0 auto 32px' }}>
+        <p style={{ fontSize: '1.15rem', opacity: 0.9, marginBottom: '32px', maxWidth: '520px', margin: '0 auto 24px' }}>
           Booster boxes, display cases, and collectibles
         </p>
+        <form onSubmit={handleHeroSearch} style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', width: '100%', maxWidth: '480px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.2)' }}>
+            <input
+              type="text"
+              value={heroSearch}
+              onChange={e => setHeroSearch(e.target.value)}
+              placeholder="Search products..."
+              style={{
+                flex: 1, padding: '14px 18px', border: 'none',
+                fontSize: '1rem', outline: 'none',
+              }}
+            />
+            <button type="submit" style={{
+              backgroundColor: '#1a1a2e', color: '#fff', border: 'none',
+              padding: '14px 20px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer',
+            }}>
+              Search
+            </button>
+          </div>
+        </form>
         <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
           <button
             onClick={() => navigate('/shop')}
             style={{
-              backgroundColor: '#fff',
-              color: '#cc0000',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '14px 32px',
-              fontWeight: 700,
-              fontSize: '1rem',
-              cursor: 'pointer',
+              backgroundColor: '#fff', color: '#cc0000', border: 'none',
+              borderRadius: '8px', padding: '12px 28px',
+              fontWeight: 700, fontSize: '1rem', cursor: 'pointer',
             }}
           >
-            Browse Shop 
+            Browse Shop
           </button>
           <button
             onClick={() => navigate('/events')}
             style={{
-              backgroundColor: 'transparent',
-              color: '#fff',
-              border: '2px solid #fff',
-              borderRadius: '8px',
-              padding: '14px 32px',
-              fontWeight: 700,
-              fontSize: '1rem',
-              cursor: 'pointer',
+              backgroundColor: 'transparent', color: '#fff', border: '2px solid #fff',
+              borderRadius: '8px', padding: '12px 28px',
+              fontWeight: 700, fontSize: '1rem', cursor: 'pointer',
             }}
           >
             View Events
@@ -337,12 +354,9 @@ export default function Home() {
                       <span style={{ fontWeight: 700, color: '#cc0000', fontSize: '1rem' }}>
                         ₱{parseFloat(product.price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
                       </span>
-                      <span style={{ fontSize: '0.72rem', color: '#666' }}>
-                        Min: {product.min_order_qty || 1} pcs
-                      </span>
                     </div>
                     <button
-                      onClick={(e) => { e.stopPropagation(); addToCart(product, product.min_order_qty || 1); }}
+                      onClick={(e) => { e.stopPropagation(); addToCart(product, 1); }}
                       style={{
                         width: '100%',
                         marginTop: '10px',
