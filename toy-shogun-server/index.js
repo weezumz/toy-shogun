@@ -10,8 +10,8 @@ app.use(cors({
   origin: [
     'http://localhost:3000',
     'http://localhost:3001',
-    'https://toy-shogun-store.vercel.app', // ← replace with your actual store URL
-    'https://toy-shogun-admin.vercel.app', // ← replace with your actual admin URL
+    'https://toy-shogun.vercel.app',
+    'https://toy-shogun-admin.vercel.app',
   ],
 }));
 app.use(express.json());
@@ -39,8 +39,8 @@ app.post('/create-payment', async (req, res) => {
             description: `Toy Shogun Wholesale Order #${orderId.slice(0, 8).toUpperCase()}`,
             remarks: `Order by ${customerName}`,
             redirect: {
-              success: 'https://toy-shogun-store.vercel.app/', 
-              failed: 'https://toy-shogun-store.vercel.app/checkout',
+              success: 'https://toy-shogun.vercel.app/', 
+              failed: 'https://toy-shogun.vercel.app/checkout',
             }
           }
         }
@@ -76,5 +76,5 @@ app.post('/webhook/paymongo', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Toy Shogun Server running on http://localhost:${PORT}`);
+  console.log(`Toy Shogun Server running on https://toy-shogun-server.vercel.app/`);
 });
