@@ -1,89 +1,86 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import PublicLayout from '../components/PublicLayout';
-import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
+import { useAuth } from '../context/AuthContext';
 
 const STATUS_COLOR = {
-  pending: '#f59e0b', confirmed: '#3b82f6',
-  ready: '#06b6d4', handed_off: '#8b5cf6',
-  completed: '#22c55e', cancelled: '#ef4444',
+  pending: '#f59e0b',
+  confirmed: '#3b82f6',
+  ready: '#06b6d4',
+  handed_off: '#8b5cf6',
+  completed: '#22c55e',
+  cancelled: '#ef4444',
 };
 
-const STATUS_LABEL = {
-  pending: 'Pending',
-  confirmed: 'Confirmed',
-  ready: 'Ready for Pickup',
-  handed_off: 'Shipped via LBC',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
+const PAYMENT_COLOR = {
+  pending: '#f59e0b',
+  paid: '#22c55e',
+  failed: '#ef4444',
 };
 
 export default function AccountOrders() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
-  const [fetching, setFetching] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(null);
-  const [orderItems, setOrderItems] = useState({});
 
   useEffect(() => {
-    if (!loading && !user) navigate('/login');
-  }, [user, loading, navigate]);
-
-  useEffect(() => {
+    if (!authLoading && !user) { navigate('/login'); return; }
     if (!user) return;
+
     supabase
       .from('online_orders')
-      .select('*')
+      .select('*, online_order_items(quantity, unit_price, subtotal, products(name))')
       .eq('customer_email', user.email)
       .order('created_at', { ascending: false })
-      .then(({ data }) => { setOrders(data || []); setFetching(false); });
-  }, [user]);
+      .then(({ data }) => {
+        setOrders(data || []);
+        setLoading(false);
+      });
+  }, [user, authLoading, navigate]);
 
-  const toggleOrder = async (orderId) => {
-    if (expanded === orderId) { setExpanded(null); return; }
-    setExpanded(orderId);
-    if (!orderItems[orderId]) {
-      const { data } = await supabase
-        .from('online_order_items')
-        .select('*, products(name)')
-        .eq('order_id', orderId);
-      setOrderItems(prev => ({ ...prev, [orderId]: data || [] }));
-    }
-  };
-
-  if (loading || !user) return null;
+  if (authLoading || !user) return null;
 
   return (
     <PublicLayout>
-      <div style={{ maxWidth: '680px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
-          <Link to="/account" style={{ color: '#888', textDecoration: 'none', fontSize: '0.9rem' }}>← Account</Link>
-          <h2 style={{ fontWeight: 700, color: '#1a1a2e', margin: 0 }}>My Orders</h2>
+      <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '28px' }}>
+          <Link to="/account" style={{ color: '#888', textDecoration: 'none', fontSize: '0.9rem' }}>
+            ← My Account
+          </Link>
         </div>
 
-        {fetching ? (
-          <p style={{ color: '#aaa', textAlign: 'center', padding: '40px 0' }}>Loading orders...</p>
+        <h2 style={{ fontWeight: 700, color: '#1a1a2e', marginBottom: '24px' }}>My Orders</h2>
+
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '80px', color: '#999' }}>Loading...</div>
         ) : orders.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 0' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📦</div>
-            <p style={{ color: '#aaa', marginBottom: '16px' }}>You haven't placed any orders yet.</p>
+          <div style={{
+            backgroundColor: '#fff', borderRadius: '12px', padding: '48px',
+            textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>📦</div>
+            <div style={{ color: '#888', marginBottom: '16px' }}>No orders yet.</div>
             <Link to="/shop" style={{
               backgroundColor: '#cc0000', color: '#fff', textDecoration: 'none',
-              padding: '12px 28px', borderRadius: '8px', fontWeight: 700, fontSize: '0.95rem',
-            }}>Browse Shop</Link>
+              padding: '10px 24px', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem',
+            }}>
+              Start Shopping
+            </Link>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {orders.map(order => (
               <div key={order.id} style={{
                 backgroundColor: '#fff', borderRadius: '12px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.06)', overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                overflow: 'hidden',
               }}>
-                {/* Order Header — clickable to expand */}
+                {/* Order Header */}
                 <div
-                  onClick={() => toggleOrder(order.id)}
+                  onClick={() => setExpanded(expanded === order.id ? null : order.id)}
                   style={{
                     padding: '16px 20px', cursor: 'pointer',
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -95,66 +92,70 @@ export default function AccountOrders() {
                     </div>
                     <div style={{ color: '#aaa', fontSize: '0.8rem', marginTop: '2px' }}>
                       {new Date(order.created_at).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      {' · '}{order.delivery_method === 'courier' ? 'Courier Delivery' : 'Store Pickup'}
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
-                    <span style={{ fontWeight: 700, color: '#1a1a2e' }}>
-                      ₱{parseFloat(order.total_amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                    </span>
-                    <span style={{
-                      backgroundColor: (STATUS_COLOR[order.status] || '#888') + '22',
-                      color: STATUS_COLOR[order.status] || '#888',
-                      padding: '3px 12px', borderRadius: '999px',
-                      fontSize: '0.75rem', fontWeight: 600,
-                    }}>
-                      {STATUS_LABEL[order.status] || order.status}
+                  <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, color: '#1a1a2e' }}>
+                        ₱{parseFloat(order.total_amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                        <StatusPill color={STATUS_COLOR[order.status]}>{order.status}</StatusPill>
+                        <StatusPill color={PAYMENT_COLOR[order.payment_status]}>{order.payment_status}</StatusPill>
+                      </div>
+                    </div>
+                    <span style={{ color: '#bbb', fontSize: '0.8rem' }}>
+                      {expanded === order.id ? '▲' : '▼'}
                     </span>
                   </div>
                 </div>
 
                 {/* Expanded Items */}
                 {expanded === order.id && (
-                  <div style={{ borderTop: '1px solid #f5f5f5', padding: '16px 20px', backgroundColor: '#fafafa' }}>
-                    {!orderItems[order.id] ? (
-                      <p style={{ color: '#aaa', fontSize: '0.85rem' }}>Loading items...</p>
-                    ) : (
-                      <>
-                        {orderItems[order.id].map((item, i) => (
-                          <div key={i} style={{
-                            display: 'flex', justifyContent: 'space-between',
-                            fontSize: '0.88rem', color: '#555', marginBottom: '8px',
-                          }}>
-                            <span>{item.products?.name || '—'} × {item.quantity}</span>
-                            <span style={{ fontWeight: 600 }}>
+                  <div style={{ borderTop: '1px solid #f0f0f0', padding: '16px 20px', backgroundColor: '#fafafa' }}>
+                    {order.delivery_address && (
+                      <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '12px' }}>
+                        <span style={{ fontWeight: 600 }}>Deliver to: </span>{order.delivery_address}
+                      </div>
+                    )}
+                    {order.tracking_number && (
+                      <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '12px' }}>
+                        <span style={{ fontWeight: 600 }}>Tracking #: </span>{order.tracking_number}
+                      </div>
+                    )}
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+                      <thead>
+                        <tr style={{ color: '#aaa', textAlign: 'left' }}>
+                          <th style={{ paddingBottom: '8px', fontWeight: 600 }}>Item</th>
+                          <th style={{ paddingBottom: '8px', fontWeight: 600, textAlign: 'center' }}>Qty</th>
+                          <th style={{ paddingBottom: '8px', fontWeight: 600, textAlign: 'right' }}>Subtotal</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(order.online_order_items || []).map((item, i) => (
+                          <tr key={i} style={{ borderTop: '1px solid #f0f0f0' }}>
+                            <td style={{ padding: '8px 0', color: '#1a1a2e' }}>{item.products?.name || '—'}</td>
+                            <td style={{ padding: '8px 0', textAlign: 'center', color: '#666' }}>×{item.quantity}</td>
+                            <td style={{ padding: '8px 0', textAlign: 'right', fontWeight: 600, color: '#1a1a2e' }}>
                               ₱{parseFloat(item.subtotal).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                            </span>
-                          </div>
+                            </td>
+                          </tr>
                         ))}
-                        {order.notes && (
-                          <div style={{ marginTop: '12px', color: '#888', fontSize: '0.82rem' }}>
-                            Note: {order.notes}
-                          </div>
-                        )}
-                        {order.delivery_method === 'lbc' && (
-                          <div style={{
-                            marginTop: '12px', padding: '10px 14px',
-                            backgroundColor: '#f5f3ff', borderRadius: '8px',
-                            fontSize: '0.82rem',
-                          }}>
-                            <div style={{ color: '#6d28d9', fontWeight: 600, marginBottom: '4px' }}>LBC Delivery</div>
-                            {order.delivery_address && (
-                              <div style={{ color: '#666' }}>📍 {order.delivery_address}</div>
-                            )}
-                            {order.tracking_number ? (
-                              <div style={{ color: '#6d28d9', marginTop: '4px', fontWeight: 600 }}>
-                                Tracking #: {order.tracking_number}
-                              </div>
-                            ) : (
-                              <div style={{ color: '#999', marginTop: '4px' }}>Tracking number will appear here once shipped.</div>
-                            )}
-                          </div>
-                        )}
-                      </>
+                      </tbody>
+                      <tfoot>
+                        <tr style={{ borderTop: '2px solid #f0f0f0' }}>
+                          <td colSpan={2} style={{ padding: '10px 0', fontWeight: 700, color: '#1a1a2e' }}>Total</td>
+                          <td style={{ padding: '10px 0', textAlign: 'right', fontWeight: 700, color: '#cc0000', fontSize: '1rem' }}>
+                            ₱{parseFloat(order.total_amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                    {order.notes && (
+                      <div style={{ marginTop: '12px', fontSize: '0.85rem', color: '#888' }}>
+                        <span style={{ fontWeight: 600 }}>Notes: </span>{order.notes}
+                      </div>
                     )}
                   </div>
                 )}
@@ -164,5 +165,21 @@ export default function AccountOrders() {
         )}
       </div>
     </PublicLayout>
+  );
+}
+
+function StatusPill({ color, children }) {
+  return (
+    <span style={{
+      backgroundColor: color + '22',
+      color,
+      padding: '2px 8px',
+      borderRadius: '999px',
+      fontSize: '0.72rem',
+      fontWeight: 600,
+      textTransform: 'capitalize',
+    }}>
+      {children}
+    </span>
   );
 }

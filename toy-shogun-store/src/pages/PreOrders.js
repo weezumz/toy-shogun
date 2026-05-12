@@ -45,7 +45,7 @@ export default function PreOrders() {
 
   const handleReserve = async (e) => {
     e.preventDefault();
-    if (delivery === 'lbc' && !address.trim()) {
+    if (delivery === 'courier' && !address.trim()) {
       setError('Please enter your delivery address.');
       return;
     }
@@ -53,11 +53,11 @@ export default function PreOrders() {
     setError('');
 
     const { error: err } = await supabase.from('reservations').insert([{
-      customer_id: user.id,
+      user_id: user.id,
       customer_email: user.email,
       product_id: reserving.id,
       delivery_method: delivery,
-      delivery_address: delivery === 'lbc' ? address.trim() : null,
+      delivery_address: delivery === 'courier' ? address.trim() : null,
       status: 'pending',
     }]);
 
@@ -215,7 +215,7 @@ export default function PreOrders() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '8px' }}>
                       {[
                         { value: 'pickup', label: 'Store Pickup', desc: 'Pick up when ready' },
-                        { value: 'lbc', label: 'LBC Delivery', desc: 'COD shipping fee' },
+                        { value: 'courier', label: 'Courier Delivery', desc: 'COD shipping fee' },
                       ].map(opt => (
                         <div
                           key={opt.value}
@@ -236,7 +236,7 @@ export default function PreOrders() {
                     </div>
                   </div>
 
-                  {delivery === 'lbc' && (
+                  {delivery === 'courier' && (
                     <div style={{ marginBottom: '20px' }}>
                       <label style={modalLabelStyle}>Delivery Address *</label>
                       <textarea

@@ -29,7 +29,7 @@ export default function Checkout() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (delivery === 'lbc' && !form.address.trim()) {
+    if (delivery === 'courier' && !form.address.trim()) {
       setError('Please enter your delivery address.');
       return;
     }
@@ -37,7 +37,7 @@ export default function Checkout() {
     setError('');
 
     try {
-      const deliveryAddress = delivery === 'lbc'
+      const deliveryAddress = delivery === 'courier'
         ? [form.address, form.city, form.province, form.zip].filter(Boolean).join(', ')
         : null;
 
@@ -124,7 +124,7 @@ export default function Checkout() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               {[
                 { value: 'pickup', label: 'Store Pickup', desc: 'Pick up at our store. Free.' },
-                { value: 'lbc', label: 'LBC Delivery', desc: 'Shipping fee paid COD to rider.' },
+                { value: 'courier', label: 'Courier Delivery', desc: 'Shipping fee paid COD to rider.' },
               ].map(opt => (
                 <div
                   key={opt.value}
@@ -144,15 +144,15 @@ export default function Checkout() {
               ))}
             </div>
 
-            {/* LBC address fields */}
-            {delivery === 'lbc' && (
+            {/* Courier address fields */}
+            {delivery === 'courier' && (
               <div style={{ marginTop: '20px', borderTop: '1px solid #f0f0f0', paddingTop: '20px' }}>
                 <div style={{
                   backgroundColor: '#fffbeb', border: '1px solid #fde68a',
                   borderRadius: '8px', padding: '10px 14px',
                   color: '#92400e', fontSize: '0.84rem', marginBottom: '16px',
                 }}>
-                  📦 Product price paid via PayMongo. LBC shipping fee paid separately to the rider upon delivery.
+                  📦 Product price paid via PayMongo. Courier shipping fee paid separately to the rider upon delivery.
                 </div>
                 <div style={{ marginBottom: '12px' }}>
                   <label style={labelStyle}>Street Address *</label>
@@ -267,13 +267,13 @@ export default function Checkout() {
             <span>Products Total</span>
             <span style={{ color: '#e94560' }}>₱{cartTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
           </div>
-          {delivery === 'lbc' && (
+          {delivery === 'courier' && (
             <div style={{
               marginTop: '12px', padding: '10px 12px',
               backgroundColor: '#fffbeb', borderRadius: '8px',
               fontSize: '0.82rem', color: '#92400e',
             }}>
-              + LBC shipping fee paid COD to rider
+              + Courier shipping fee paid COD to rider
             </div>
           )}
         </div>

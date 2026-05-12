@@ -118,9 +118,9 @@ app.post('/webhook/paymongo', async (req, res) => {
       await supabase
         .from('notifications')
         .insert([{
-          type: 'payment',
-          title: `Payment received — Order #${order.id.slice(0, 8).toUpperCase()}`,
-          body: 'Payment confirmed via PayMongo.',
+          type: 'payment_confirmed',
+          message: `Payment received — Order #${order.id.slice(0, 8).toUpperCase()}`,
+          order_id: order.id,
         }]);
 
       console.log('Order updated and stock decremented for order:', order.id);

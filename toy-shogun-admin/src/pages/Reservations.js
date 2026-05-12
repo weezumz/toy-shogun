@@ -135,8 +135,8 @@ export default function Reservations() {
                       <div>{r.customer_email}</div>
                     </td>
                     <td>
-                      <Badge bg={r.delivery_method === 'lbc' ? 'info' : 'secondary'}>
-                        {r.delivery_method === 'lbc' ? 'LBC' : 'Pickup'}
+                      <Badge bg={r.delivery_method === 'courier' ? 'info' : 'secondary'}>
+                        {r.delivery_method === 'courier' ? 'Courier' : 'Pickup'}
                       </Badge>
                     </td>
                     <td><Badge bg={STATUS_BADGE[r.status] || 'secondary'}>{r.status}</Badge></td>
@@ -187,8 +187,8 @@ export default function Reservations() {
 
               <div className="mb-3">
                 <div className="text-muted small">Delivery Method</div>
-                <Badge bg={selected.delivery_method === 'lbc' ? 'info' : 'secondary'} className="mt-1">
-                  {selected.delivery_method === 'lbc' ? 'LBC Delivery' : 'Store Pickup'}
+                <Badge bg={selected.delivery_method === 'courier' ? 'info' : 'secondary'} className="mt-1">
+                  {selected.delivery_method === 'courier' ? 'Courier Delivery' : 'Store Pickup'}
                 </Badge>
                 {selected.delivery_address && (
                   <div className="mt-2 p-2 bg-light rounded small">{selected.delivery_address}</div>

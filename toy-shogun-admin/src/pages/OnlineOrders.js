@@ -11,7 +11,7 @@ const PICKUP_FLOW = {
   cancelled: null,
 };
 
-const LBC_FLOW = {
+const COURIER_FLOW = {
   pending:    { next: 'confirmed',   label: 'Confirm Order' },
   confirmed:  null, // advance via tracking form instead
   handed_off: { next: 'completed',   label: 'Mark Completed' },
@@ -36,7 +36,7 @@ export default function OnlineOrders() {
   const [loadingItems, setLoadingItems] = useState(false);
   const [updating, setUpdating] = useState(false);
 
-  // LBC tracking state
+  // Courier tracking state
   const [trackingNumber, setTrackingNumber] = useState('');
   const [receiptUrl, setReceiptUrl] = useState('');
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
@@ -68,7 +68,7 @@ export default function OnlineOrders() {
   };
 
   const getFlow = (order) =>
-    order?.delivery_method === 'lbc' ? LBC_FLOW : PICKUP_FLOW;
+    order?.delivery_method === 'courier' ? COURIER_FLOW : PICKUP_FLOW;
 
   const advanceStatus = async () => {
     const next = getFlow(selectedOrder)[selectedOrder.status]?.next;
@@ -120,7 +120,7 @@ export default function OnlineOrders() {
   const confirmed = orders.filter(o => o.status === 'confirmed').length;
   const active    = orders.filter(o => ['confirmed', 'ready', 'handed_off'].includes(o.status)).length;
 
-  const isLBC = selectedOrder?.delivery_method === 'lbc';
+  const isCourier = selectedOrder?.delivery_method === 'courier';
   const flow = getFlow(selectedOrder);
 
   return (
@@ -156,7 +156,7 @@ export default function OnlineOrders() {
           <option value="pending">Pending</option>
           <option value="confirmed">Confirmed</option>
           <option value="ready">Ready for Pickup</option>
-          <option value="handed_off">Handed Off (LBC)</option>
+          <option value="handed_off">Handed Off (Courier)</option>
           <option value="completed">Completed</option>
           <option value="cancelled">Cancelled</option>
         </Form.Select>
@@ -192,8 +192,8 @@ export default function OnlineOrders() {
                     </td>
                     <td className="fw-semibold">₱{parseFloat(order.total_amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
                     <td>
-                      <Badge bg={order.delivery_method === 'lbc' ? 'info' : 'secondary'}>
-                        {order.delivery_method === 'lbc' ? 'LBC' : 'Pickup'}
+                      <Badge bg={order.delivery_method === 'courier' ? 'info' : 'secondary'}>
+                        {order.delivery_method === 'courier' ? 'Courier' : 'Pickup'}
                       </Badge>
                     </td>
                     <td><Badge bg={PAYMENT_BADGE[order.payment_status] || 'secondary'}>{order.payment_status}</Badge></td>
@@ -222,7 +222,7 @@ export default function OnlineOrders() {
                 {' '}
                 <Badge bg={STATUS_BADGE[selectedOrder.status] || 'secondary'}>{selectedOrder.status}</Badge>
                 {' '}
-                <Badge bg={isLBC ? 'info' : 'secondary'}>{isLBC ? 'LBC' : 'Pickup'}</Badge>
+                <Badge bg={isCourier ? 'info' : 'secondary'}>{isCourier ? 'Courier' : 'Pickup'}</Badge>
               </Modal.Title>
             </Modal.Header>
 
@@ -245,8 +245,8 @@ export default function OnlineOrders() {
                 </Col>
               </Row>
 
-              {/* Delivery Address (LBC) */}
-              {isLBC && selectedOrder.delivery_address && (
+              {/* Delivery Address (Courier) */}
+              {isCourier && selectedOrder.delivery_address && (
                 <div className="mb-3 p-3 bg-light rounded">
                   <div className="text-muted small mb-1">Delivery Address</div>
                   <div>{selectedOrder.delivery_address}</div>
@@ -260,10 +260,10 @@ export default function OnlineOrders() {
                 </div>
               )}
 
-              {/* LBC Tracking Section */}
-              {isLBC && selectedOrder.status === 'confirmed' && (
+              {/* Courier Tracking Section */}
+              {isCourier && selectedOrder.status === 'confirmed' && (
                 <div className="mb-4 p-3 border rounded" style={{ borderColor: '#0dcaf0 !important' }}>
-                  <h6 className="fw-bold mb-3">📦 LBC Shipping</h6>
+                  <h6 className="fw-bold mb-3">📦 Courier Shipping</h6>
                   <Form.Group className="mb-3">
                     <Form.Label>Tracking Number *</Form.Label>
                     <Form.Control
@@ -274,7 +274,7 @@ export default function OnlineOrders() {
                     />
                   </Form.Group>
                   <Form.Group className="mb-3">
-                    <Form.Label>LBC Receipt <span className="text-muted">(optional)</span></Form.Label>
+                    <Form.Label>Shipping Receipt <span className="text-muted">(optional)</span></Form.Label>
                     {receiptUrl && (
                       <div className="mb-2">
                         <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="small text-primary">
@@ -304,9 +304,9 @@ export default function OnlineOrders() {
               {isLBC && ['handed_off', 'completed'].includes(selectedOrder.status) && (
                 <div className="mb-3 p-3 bg-light rounded">
                   <div className="text-muted small mb-1">LBC Tracking</div>
-                  <div className="fw-semibold">{selectedOrder.tracking_number || '—'}</div>
-                  {selectedOrder.receipt_url && (
-                    <a href={selectedOrder.receipt_url} target="_blank" rel="noopener noreferrer" className="small text-primary">
+                  <div className="fw-semibold">{selectedOrder.lbc_tracking_number || '—'}</div>
+                  {selectedOrder.lbc_receipt_url && (
+                    <a href={selectedOrder.lbc_receipt_url} target="_blank" rel="noopener noreferrer" className="small text-primary">
                       View receipt ↗
                     </a>
                   )}
@@ -346,8 +346,8 @@ export default function OnlineOrders() {
                   Cancel Order
                 </Button>
               )}
-              {/* Only show advance button for non-LBC, or LBC statuses that aren't 'confirmed' */}
-              {flow[selectedOrder.status] && !(isLBC && selectedOrder.status === 'confirmed') && (
+              {/* Only show advance button for pickup, or courier statuses that aren't 'confirmed' */}
+              {flow[selectedOrder.status] && !(isCourier && selectedOrder.status === 'confirmed') && (
                 <Button style={{ backgroundColor: '#1a1a2e', border: 'none' }} onClick={advanceStatus} disabled={updating}>
                   {updating ? 'Updating...' : flow[selectedOrder.status].label}
                 </Button>

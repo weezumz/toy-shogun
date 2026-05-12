@@ -25,7 +25,15 @@ export default function Sidebar() {
     if (!showNotifs && unreadCount > 0) markAllRead();
   };
 
-  const TYPE_ICON = { order: '📦', reservation: '📋', payment: '💳' };
+  const TYPE_ICON = {
+    new_order: '📦',
+    payment_confirmed: '💳',
+    pickup_ready: '🏪',
+    lbc_shipped: '🚚',
+    reservation_confirmed: '📋',
+    reservation_cancelled: '❌',
+    preorder_available: '🎴',
+  };
   const timeAgo = (ts) => {
     const mins = Math.floor((Date.now() - new Date(ts)) / 60000);
     if (mins < 1) return 'just now';
@@ -168,11 +176,8 @@ export default function Sidebar() {
                       </span>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: n.is_read ? 500 : 700, color: '#1a1a2e', fontSize: '0.88rem', marginBottom: '2px' }}>
-                          {n.title}
+                          {n.message}
                         </div>
-                        {n.body && (
-                          <div style={{ color: '#888', fontSize: '0.8rem', lineHeight: '1.4' }}>{n.body}</div>
-                        )}
                         <div style={{ color: '#bbb', fontSize: '0.75rem', marginTop: '4px' }}>
                           {timeAgo(n.created_at)}
                         </div>

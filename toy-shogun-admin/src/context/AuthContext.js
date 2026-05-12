@@ -9,35 +9,29 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getSession = async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        const authUser = data?.session?.user ?? null;
-        setUser(authUser);
-        if (authUser) {
-          const { data: userData, error } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', authUser.id)
-            .single();
-          console.log('Role data:', userData, 'Error:', error);
-          setRole(userData?.role || 'staff');
-        }
-      } catch (err) {
-        console.error('Session error:', err);
-        setUser(null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const authUser = session?.user ?? null;
+      setUser(authUser);
+      if (authUser) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', authUser.id)
+          .maybeSingle();
+        setRole(userData?.role ?? null);
+      } else {
         setRole(null);
-      } finally {
-        setLoading(false);
       }
-    };
+      setLoading(false);
+    });
 
-    getSession();
-  }, []); // ← no listener at all
+    return () => subscription.unsubscribe();
+  }, []);
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    setUser(null);
     setRole(null);
+    await supabase.auth.signOut();
   };
 
   return (

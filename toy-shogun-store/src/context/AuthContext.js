@@ -27,10 +27,11 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return { error };
     if (data.user) {
-      await supabase.from('customers').insert([{
+      await supabase.from('users').insert([{
         id: data.user.id,
         full_name: fullName,
         email,
+        role: 'customer',
       }]);
     }
     return { data };
