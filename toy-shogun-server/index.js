@@ -14,8 +14,6 @@ const PORT = process.env.PORT || 4000;
 
 app.use(cors({
   origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
     'https://toy-shogun.vercel.app',
     'https://toy-shogun-admin.vercel.app',
   ],
@@ -133,5 +131,5 @@ app.post('/webhook/paymongo', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Toy Shogun Server running on https://toy-shogun-server.vercel.app/`);
+  console.log(`Toy Shogun Server running on https://toy-shogun-server.onrender.com/`);
 });

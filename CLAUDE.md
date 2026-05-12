@@ -10,7 +10,7 @@ Three packages, each deployed independently to Vercel:
 |---|---|---|
 | `toy-shogun-store/` | Public-facing e-commerce storefront | toy-shogun.vercel.app |
 | `toy-shogun-admin/` | Internal staff/admin panel | toy-shogun-admin.vercel.app |
-| `toy-shogun-server/` | Express API server (PayMongo + webhooks) | toy-shogun-server.vercel.app |
+| `toy-shogun-server/` | Express API server (PayMongo + webhooks) | toy-shogun-server.onrender.com |
 
 ## Development Commands
 
@@ -61,7 +61,7 @@ Public storefront — no login required for browsing or checkout. Two React cont
 
 **Checkout flow:**
 1. User fills form → inserts row into `online_orders` + rows into `online_order_items` directly via Supabase anon client
-2. Calls `toy-shogun-server.vercel.app/create-payment` with `{ amount, orderId, customerName }`
+2. Calls `toy-shogun-server.onrender.com/create-payment` with `{ amount, orderId, customerName }`
 3. Server creates a PayMongo payment link → returns `{ paymentLink, linkId }`
 4. Store updates `online_orders.paymongo_link_id`, clears cart, redirects user to PayMongo
 

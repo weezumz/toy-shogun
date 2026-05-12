@@ -74,7 +74,7 @@ export default function Checkout() {
 
       if (itemsError) throw new Error(itemsError.message);
 
-      const serverRes = await fetch('https://toy-shogun-server.vercel.app/create-payment', {
+      const serverRes = await fetch('https://toy-shogun-server.onrender.com/create-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
