@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Nav } from 'react-bootstrap';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../hooks/useNotifications';
 import logo from '../assets/shogunlogo.png';
@@ -8,6 +8,7 @@ import logo from '../assets/shogunlogo.png';
 export default function Sidebar() {
   const { logout, user, role } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const { notifications, unreadCount, markAllRead, markRead } = useNotifications();
   const [showNotifs, setShowNotifs] = useState(false);
 
@@ -111,7 +112,7 @@ export default function Sidebar() {
             {user?.email}
           </small>
           <button
-            onClick={logout}
+            onClick={async () => { await logout(); navigate('/login'); }}
             style={{
               background: 'none', border: '1px solid #ffffff40',
               color: '#ffffff80', padding: '6px 16px',
