@@ -14,6 +14,8 @@ const PORT = process.env.PORT || 4000;
 
 app.use(cors({
   origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
     'https://toy-shogun.vercel.app',
     'https://toy-shogun-admin.vercel.app',
   ],
