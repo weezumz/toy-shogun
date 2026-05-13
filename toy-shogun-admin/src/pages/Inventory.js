@@ -111,7 +111,6 @@ export default function Inventory() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this product?')) return;
-    const productToDelete = products.find(p => p.id === id);
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) { setError(error.message); return; }
     fetchProducts();

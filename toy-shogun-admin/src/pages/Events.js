@@ -109,7 +109,6 @@ export default function Events() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this event?')) return;
-    const eventToDelete = events.find(e => e.id === id);
     const { error } = await supabase.from('events').delete().eq('id', id);
     if (error) { setError(error.message); return; }
     fetchEvents();
