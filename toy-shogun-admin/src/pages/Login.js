@@ -2,9 +2,10 @@
 // This is the login page — the first thing unauthenticated users see.
 // It uses Supabase Auth to sign users in with email and password.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import { useAuth } from '../context/AuthContext';
 import { Container, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import logo from '../assets/shogunlogo.png';
 
@@ -21,6 +22,11 @@ export default function Login() {
 
   // useNavigate lets us redirect the user programmatically after login
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) navigate('/');
+  }, [user, navigate]);
 
   const handleLogin = async (e) => {
     // Prevent default form submission (page reload)
@@ -32,12 +38,8 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      // Show the error message if login fails
       setError(error.message);
       setLoading(false);
-    } else {
-      // On success, redirect to the dashboard
-      navigate('/');
     }
   };
 
