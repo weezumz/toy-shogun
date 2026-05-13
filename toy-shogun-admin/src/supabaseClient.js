@@ -8,6 +8,10 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
-// Create and export the Supabase client instance
-// This is imported by any file that needs to talk to the database
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storageKey: 'toy-shogun-admin-auth',
+    // Bypass navigator.locks — prevents fetch hangs when the lock gets stuck
+    lock: (_name, _acquireTimeout, fn) => fn(),
+  },
+});
