@@ -300,13 +300,12 @@ export default function OnlineOrders() {
                 </div>
               )}
 
-              {/* Show existing tracking info for handed_off / completed LBC */}
-              {isLBC && ['handed_off', 'completed'].includes(selectedOrder.status) && (
+              {isCourier && ['handed_off', 'completed'].includes(selectedOrder.status) && selectedOrder.tracking_number && (
                 <div className="mb-3 p-3 bg-light rounded">
-                  <div className="text-muted small mb-1">LBC Tracking</div>
-                  <div className="fw-semibold">{selectedOrder.lbc_tracking_number || '—'}</div>
-                  {selectedOrder.lbc_receipt_url && (
-                    <a href={selectedOrder.lbc_receipt_url} target="_blank" rel="noopener noreferrer" className="small text-primary">
+                  <div className="text-muted small mb-1">Tracking Number</div>
+                  <div className="fw-semibold">{selectedOrder.tracking_number}</div>
+                  {selectedOrder.receipt_url && (
+                    <a href={selectedOrder.receipt_url} target="_blank" rel="noopener noreferrer" className="small text-primary">
                       View receipt ↗
                     </a>
                   )}
