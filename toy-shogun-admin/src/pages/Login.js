@@ -44,7 +44,7 @@ export default function Login() {
   };
 
   return (
-    <div style={{ backgroundColor: '#0066ff', minHeight: '100vh' }} className="d-flex align-items-center">
+    <div style={{ backgroundColor: '#f0f2f5', minHeight: '100vh' }} className="d-flex align-items-center">
       <Container style={{ maxWidth: '420px' }}>
 
         {/* App branding above the login card */}

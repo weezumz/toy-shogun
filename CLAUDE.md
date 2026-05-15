@@ -65,7 +65,7 @@ Public storefront — no login required for browsing or checkout. Two React cont
 3. Server creates a PayMongo payment link → returns `{ paymentLink, linkId }`
 4. Store updates `online_orders.paymongo_link_id`, clears cart, redirects user to PayMongo
 
-**Payment completion** is handled by the server webhook — the store just shows `/checkout/success` on redirect back.
+**Payment completion** is handled by the server webhook — the store just shows `/checkout/success` on redirect back. The redirect to PayMongo uses `window.location.href` (hard redirect), so all React state is discarded at that point.
 
 ### toy-shogun-admin (React 19, CRA + Bootstrap 5)
 
@@ -73,7 +73,7 @@ Protected by Supabase auth. Two route guard wrappers in `App.js`:
 - `PrivateRoute` — any authenticated user
 - `AdminRoute` — requires `role === 'admin'` (fetched from `users` table)
 
-**`AuthContext`** — provides `user`, `role`, `logout`, `loading`. Fetches role from `public.users` on login. Defaults unknown roles to `'staff'` (note: the DB check constraint only allows `'admin'` | `'customer'`, so staff accounts need to use `'admin'` role in DB).
+**`AuthContext`** — provides `user`, `role`, `logout`, `loading`. Fetches role from `public.users` on login using `maybeSingle()`. Role defaults to `null` if the user record is not found. Has a 3-second timeout fallback on initial `getSession()` to prevent indefinite loading spinners. Note: the DB check constraint on `users.role` only allows `'admin'` | `'customer'` — there is no `'staff'` role at the DB level.
 
 **`useNotifications` hook** — fetches from `notifications` table and subscribes to real-time inserts via a Supabase postgres_changes channel. Used in the Sidebar for the notification bell.
 
@@ -87,11 +87,14 @@ Single file: `index.js`. Uses Supabase service role client.
 
 **`POST /webhook/paymongo`** — PayMongo calls this on payment events. On `link.payment.paid`:
 1. Finds order by `paymongo_link_id`
-2. Updates `payment_status → 'paid'`, `status → 'confirmed'`
-3. Calls `decrement_stock` RPC for each item in `online_order_items`
-4. Inserts a `payment_confirmed` notification
+2. Guards against duplicate webhooks: returns 200 early if `order.status !== 'pending'`
+3. Updates `payment_status → 'paid'`, `status → 'confirmed'`
+4. Calls `decrement_stock` RPC for each item via `Promise.all` — no DB transaction wrapping, so a partial failure leaves inconsistent stock
+5. Inserts a `payment_confirmed` notification
 
-CORS is configured to allow localhost:3000/3001 and both Vercel domains.
+**Note:** The webhook does not validate PayMongo's cryptographic signature — it trusts the event payload as-is.
+
+CORS is hardcoded to allow `localhost:3000`, `localhost:3001`, `toy-shogun.vercel.app`, and `toy-shogun-admin.vercel.app`.
 
 ## Supabase Database (Project: `idksgwdzvyzazlydoywf`, region: ap-southeast-1)
 
@@ -123,3 +126,5 @@ All tables have RLS enabled. Key tables:
 - **No styling framework in store** — the store uses inline styles throughout. The admin uses Bootstrap/react-bootstrap components.
 - **Product visibility** — only products with `is_published = true` appear in the store. Pre-orders appear on `/preorders` when `is_preorder = true`.
 - **User accounts are optional in store** — checkout is guest-friendly. `online_orders.user_id` is nullable and set when the customer is logged in.
+- **Admin Supabase client is a singleton** — stored on `window.__toy_shogun_admin_supabase__` with a no-op lock function and `storageKey: 'toy-shogun-admin-auth'`. This prevents CRA HMR from spinning up multiple `GoTrueClient` instances (which causes fetch hangs). The store client does not need this and is a plain `createClient` call.
+- **Cart price is a string** — `item.price` from Supabase arrives as a string; `CartContext` uses `parseFloat(item.price)` for total calculations.

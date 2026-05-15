@@ -9,6 +9,18 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const timeout = setTimeout(() => setLoading(false), 3000);
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(timeout);
+      if (session?.user) {
+        setUser(session.user);
+        supabase.from('users').select('role').eq('id', session.user.id).maybeSingle()
+          .then(({ data }) => setRole(data?.role ?? null));
+      }
+      setLoading(false);
+    });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const authUser = session?.user ?? null;
       setUser(authUser);
@@ -22,7 +34,6 @@ export function AuthProvider({ children }) {
       } else {
         setRole(null);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -37,7 +48,7 @@ export function AuthProvider({ children }) {
   return (
     // role was missing from here!
     <AuthContext.Provider value={{ user, role, logout, loading }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }

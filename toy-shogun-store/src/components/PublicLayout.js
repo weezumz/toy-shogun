@@ -197,7 +197,7 @@ export default function PublicLayout({ children, noPadding = false }) {
               </div>
               <div>
                 <div style={{ color: '#aaa', fontWeight: 500 }}>Phone</div>
-                <div>[_Contact_Number_]</div>
+                <div>[09090909090]</div>
               </div>
               <div>
                 <div style={{ color: '#aaa', fontWeight: 500 }}>Follow Us</div>

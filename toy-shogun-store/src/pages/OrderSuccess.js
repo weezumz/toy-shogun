@@ -12,7 +12,7 @@ export default function OrderSuccess() {
   return (
     <PublicLayout>
       <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-        <div style={{ fontSize: '5rem', marginBottom: '16px' }}>🎉</div>
+        <div style={{ fontSize: '5rem', marginBottom: '16px' }}></div>
         <h2 style={{ fontWeight: 700, color: '#1a1a2e', marginBottom: '12px' }}>
           Order Placed Successfully!
         </h2>

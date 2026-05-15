@@ -21,13 +21,23 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 
 // PrivateRoute: a wrapper that protects pages from unauthenticated access
 // If the user is not logged in, redirect them to /login automatically
+function LoadingScreen() {
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f0f2f5' }}>
+      <div style={{ color: '#1a1a2e', fontWeight: 600 }}>Loading...</div>
+    </div>
+  );
+}
+
 function PrivateRoute({ children }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return <LoadingScreen />;
   return user ? children : <Navigate to="/login" />;
 }
-// Add this below PrivateRoute in App.js
+
 function AdminRoute({ children }) {
-  const { user, role } = useAuth();
+  const { user, role, loading } = useAuth();
+  if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" />;
   if (role !== 'admin') return <Navigate to="/" />;
   return children;
